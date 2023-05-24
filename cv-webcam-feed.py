@@ -1,9 +1,10 @@
 # Author: Sriram Sai Ganesh
 
 # Guides consulted: 
-# https://learnopencv.com
+# https://learnopencv.com/building-a-body-posture-analysis-system-using-mediapipe/
 
 import cv2
+from datetime import datetime
 
 # for webcam input, replace file name with 0.
 file_name = 0
@@ -34,14 +35,12 @@ while video_capture.isOpened() and (cv2.waitKey(25) & 0xFF != ord('q')):
 	# Get fps.
 	fps = video_capture.get(cv2.CAP_PROP_FPS)
 
-	print(str(width)+" x "+str(height)+"  -  "+str(fps)+" fps")
+	print(str(datetime.now()) + " : "+ str(width)+" x "+str(height)+"  -  "+str(fps)+" fps")
 
 	# Get height and width of the frame.
 	h, w = image.shape[:2]
 
-	# detect pose landmarks from the input image.
-	# detection_result = detector.detect(image)
-
+	# display image
 	cv2.imshow("window", image)
 	
 	# wait 1ms between frames
