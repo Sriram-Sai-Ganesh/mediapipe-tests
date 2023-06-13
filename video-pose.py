@@ -1,3 +1,4 @@
+# Author Sriram Sai Ganesh
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
@@ -9,6 +10,25 @@ from mediapipe import solutions
 from mediapipe.framework.formats import landmark_pb2
 import numpy as np
 
+from HelperFunctions import *
+
+# debug: detect location of prints by appending traceback to any stdouts
+import sys
+import traceback
+
+class TracePrints(object):
+	def __init__(self):    
+		self.stdout = sys.stdout
+	def write(self, s):
+		self.stdout.write("Writing %r\n" % s)
+		traceback.print_stack(file=self.stdout)
+# sys.stdout = TracePrints()
+
+# model returns these points:
+# https://developers.google.com/mediapipe/solutions/vision/pose_landmarker
+
+pose_landmarker_dict = {'NOSE' : 0, 'LEFT_EYE_INNER' : 1, 'LEFT_EYE' : 2, 'LEFT_EYE_OUTER' : 3, 'RIGHT_EYE_INNER' : 4, 'RIGHT_EYE' : 5, 'RIGHT_EYE_OUTER' : 6, 'LEFT_EAR' : 7, 'RIGHT_EAR' : 8, 'LEFT_MOUTH' : 9, 'RIGHT_MOUTH' : 10, 'LEFT_SHOULDER' : 11, 'RIGHT_SHOULDER' : 12, 'LEFT_ELBOW' : 13, 'RIGHT_ELBOW' : 14, 'LEFT_WRIST' : 15, 'RIGHT_WRIST' : 16, 'LEFT_PINKY' : 17, 'RIGHT_PINKY' : 18, 'LEFT_INDEX' : 19, 'RIGHT_INDEX' : 20, 'LEFT_THUMB' : 21, 'RIGHT_THUMB' : 22, 'LEFT_HIP' : 23, 'RIGHT_HIP' : 24, 'LEFT_KNEE' : 25, 'RIGHT_KNEE' : 26, 'LEFT_ANKLE' : 27, 'RIGHT_ANKLE' : 28, 'LEFT_HEEL' : 29, 'RIGHT_HEEL' : 30, 'LEFT_FOOT_INDEX' : 31, 'RIGHT_FOOT_INDEX' : 32
+}
 
 # objects
 BaseOptions = mp.tasks.BaseOptions
@@ -41,8 +61,22 @@ def draw_landmarks_on_image(rgb_image, detection_result):
 	return annotated_image
 
 # function to print PoseLandmarkerResult object
-def print_result(result: mp.tasks.vision.PoseLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
+def print_pose_landmarker_result(result: mp.tasks.vision.PoseLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
 	print('pose landmarker result: {}'.format(result))
+
+def plot_pose_landmarker_variables(result: mp.tasks.vision.PoseLandmarkerResult):
+	print(get_pose_landmarker_coordinates(result, "LEFT_ANKLE"))
+
+def get_pose_landmarker_coordinates(result, *args):
+	for s in args:
+		print(get_coords_for_landmark(result, s))
+
+def get_coords_for_landmark(result, location):
+	if location not in pose_landmarker_dict:
+		return (-1, -1, -1)
+	return (result.pose_landmarks[0][0].x, result.pose_landmarks[0][0].y, result.pose_landmarks[0][0].z)
+
+	print(str(result.pose_landmarks[0][0].x) + " " + str(result.pose_landmarks[0][0].y))
 
 # calculate angle between horizontal and individual's spine.
 def calculate_spine_angle(result: mp.tasks.vision.PoseLandmarkerResult):
@@ -51,14 +85,18 @@ def calculate_spine_angle(result: mp.tasks.vision.PoseLandmarkerResult):
 	
 	
 	# trig goes here
-	print()
-
+	print("<calc spine angle>")
 
 # set model path
 model_path = 'models/pose_landmarker_heavy.task'
+# i/o streams
+video_capture = cv2.VideoCapture('./media/video.mp4')
+outfile_name = "out/landmark_coords.txt"
+
+
 # name is filename for mediapipe model
 model_name=model_path.split("/")[-1].split(".")[0]
-print("MODEL NAME IS "+model_name)
+print("USING MODEL: "+model_name)
 
 # Create a pose landmarker instance with the video running mode:
 options = PoseLandmarkerOptions(
@@ -67,11 +105,15 @@ options = PoseLandmarkerOptions(
 
 start_time=datetime.now()
 
+outfile = open(outfile_name, "w+")
+outfile.write("Name of the file: " + outfile.name)
+outfile.write("Closed or not : " + str(outfile.closed))
+outfile.write("Opening mode : " + str(outfile.mode))
+
 # with landmarker:
 landmarker_model = PoseLandmarker.create_from_options(options)
 
-# create cv2 video capture object
-video_capture = cv2.VideoCapture('video.mp4')
+# run until video cap is closed, or 'q' is pressed.
 while video_capture.isOpened() and (cv2.waitKey(25) & 0xFF != ord('q')):
 	# Capture frames.
 	success, image = video_capture.read()
@@ -91,12 +133,48 @@ while video_capture.isOpened() and (cv2.waitKey(25) & 0xFF != ord('q')):
 
 	# use the generated PoseLandmarkerResult object:
 	# print(str(poseLandmarkerResult))
-	print(calculate_spine_angle(pose_landmarker_result))
+	# print(calculate_spine_angle(pose_landmarker_result))
 
 	# visualize the detection result:
-
+	plot_pose_landmarker_variables(pose_landmarker_result)
 	annotated_image = draw_landmarks_on_image(image, pose_landmarker_result)
 	cv2.imshow(model_name,cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR))
 
 	# wait 1ms between frames (not a bottleneck)
 	cv2.waitKey(1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

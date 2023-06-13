@@ -48,9 +48,13 @@ while video_capture.isOpened() and (cv2.waitKey(25) & 0xFF != ord('q')):
 	cv2.waitKey(1)
 
 	'''
+	meeting 1:
 	Meeting notes: 
 	ischemic stroke and heamorrage
 	focus is ischemic
 	nih stroke scale, 32 points analyzed on 15 different things
 	levels of stroke	
+
+	meeting 3:
+	look at race score -- look into to see what poses are useful
 	'''
