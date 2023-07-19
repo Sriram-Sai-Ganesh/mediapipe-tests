@@ -175,5 +175,3 @@ else:
 	source = cv2.VideoCapture(VIDEO_FILE_PATH)
 
 model_from_source(source, landmarker_model, outfile)
-
-
